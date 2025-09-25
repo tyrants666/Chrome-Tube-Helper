@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "TubeMate Tools",
+  "version": "1.0.0",
+  "description": "Generate engaging YouTube titles and thumbnails using AI suggestions",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://studio.youtube.com/*",
+    "https://api.tubemaster.ai/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TubeMate Tools",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://studio.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png",
+    "512": "icons/logo.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/logo.png", "icons/icon16.png", "icons/icon48.png", "icons/icon128.png"],
+      "matches": ["https://studio.youtube.com/*"]
+    }
+  ]
+}

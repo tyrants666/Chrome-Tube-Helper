@@ -1,0 +1,137 @@
+:root {
+  --primary: #ee5572;
+  --primary-light: #ef6c84;
+  --primary-gradient: linear-gradient(135deg, hsl(358 75% 59%), hsl(345 85% 65%));
+  --text: #171b26;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 380px;
+  min-height: 300px;
+  color: var(--text);
+  background: #f8f9fa;
+}
+
+.container {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.header h1 {
+  font-size: 21px;
+  margin-bottom: 5px;
+  display: flex;
+  gap: 9px;
+  color: var(--text);
+  justify-content: center;
+  align-items: center;
+}
+
+.header p {
+  font-size: 14px;
+  opacity: 0.9;
+  color: var(--text);
+  /* padding-left: 44px; */
+}
+
+.auto-suggest-note {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #1565c0;
+  text-align: left;
+}
+
+.auto-suggest-note a {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auto-suggest-note a:hover {
+  text-decoration: underline;
+}
+
+.info-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.description {
+  margin-bottom: 20px;
+}
+
+.description p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
+  text-align: left;
+}
+
+.actions {
+  margin-bottom: 20px;
+}
+
+.studio-btn {
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.studio-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: rgb(234 102 102 / 30%) 0px 6px 20px;
+}
+
+.studio-btn:active {
+  transform: translateY(0);
+}
+
+.studio-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.version-info {
+  text-align: center;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.version-info span {
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+}
