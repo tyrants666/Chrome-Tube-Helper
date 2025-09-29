@@ -1059,6 +1059,7 @@ class YouTubeStudioIntegration {
     keywordsInput.type = 'text';
     keywordsInput.className = 'ttg-keywords-input';
     keywordsInput.placeholder = 'Add keywords that you want to include in your description';
+    keywordsInput.maxLength = 100;
 
     // Generate button
     const generateButton = document.createElement('button');
@@ -1069,7 +1070,7 @@ class YouTubeStudioIntegration {
     // Note text
     const noteText = document.createElement('div');
     noteText.className = 'ttg-keywords-note';
-    noteText.textContent = 'Comma separate your keywords for better results';
+    noteText.innerHTML = 'Comma separate your keywords for better results <span class="ttg-char-counter">0/100</span>';
 
     // Description result container (initially hidden)
     const resultContainer = document.createElement('div');
@@ -1111,6 +1112,12 @@ class YouTubeStudioIntegration {
     // Store references for description functionality
     this.descriptionsData = [];
     this.currentDescriptionIndex = 0;
+    this.refreshCount = 0; // Initialize refresh count
+    this.lastKeywords = ''; // Track last used keywords
+
+    // Get references to noteText and charCounter that were created earlier
+    const noteText = generatorForm.querySelector('.ttg-keywords-note');
+    const charCounter = noteText.querySelector('.ttg-char-counter');
 
     // Initial button click handler - show the form
     initialButton.addEventListener('click', () => {
@@ -1134,8 +1141,26 @@ class YouTubeStudioIntegration {
       // Reset border color
       keywordsInput.style.borderColor = '#e9ecef';
 
+      // Check if keywords changed - reset refresh count if they did
+      if (keywords !== this.lastKeywords) {
+        this.refreshCount = 0;
+        this.lastKeywords = keywords;
+      }
+
       await this.generateDescriptionFromKeywords(keywords, generateButton, resultContainer, generatorForm);
+      
+      // Hide input form and show keywords display after successful generation
+      this.hideInputShowKeywords(generatorForm, keywords, keywordsInput, generateButton, resultContainer, noteText, charCounter);
     });
+
+    // Character counter functionality
+    const updateCharCounter = () => {
+      const currentLength = keywordsInput.value.length;
+      charCounter.textContent = `${currentLength}/100`;
+    };
+
+    // Real-time character counting
+    keywordsInput.addEventListener('input', updateCharCounter);
 
     // Allow Enter key to trigger generation
     keywordsInput.addEventListener('keypress', (e) => {
@@ -1143,6 +1168,111 @@ class YouTubeStudioIntegration {
         generateButton.click();
       }
     });
+  }
+
+  hideInputShowKeywords(generatorForm, keywords, keywordsInput, generateButton, resultContainer, noteText, charCounter) {
+    // Hide input elements
+    keywordsInput.style.display = 'none';
+    generateButton.style.display = 'none';
+    noteText.style.display = 'none';
+    
+    // Create keywords display container if it doesn't exist
+    let keywordsDisplay = generatorForm.querySelector('.ttg-keywords-display');
+    if (!keywordsDisplay) {
+      keywordsDisplay = document.createElement('div');
+      keywordsDisplay.className = 'ttg-keywords-display';
+      generatorForm.appendChild(keywordsDisplay);
+    }
+    
+    // Get existing description content and format it
+    const existingContent = this.getExistingDescriptionContent();
+    let contentText = '';
+    
+    if (existingContent && existingContent.length > 0) {
+      // Truncate if too long and add "..."
+      const maxLength = 50;
+      if (existingContent.length > maxLength) {
+        contentText = ` for "${existingContent.substring(0, maxLength)}..."`;
+      } else {
+        contentText = ` for "${existingContent}"`;
+      }
+    }
+    
+    keywordsDisplay.innerHTML = `
+      <div class="ttg-keywords-recommendation-text">
+        Description recommendation${contentText} with keywords "${keywords}"
+      </div>
+      <button type="button" class="ttg-change-keywords-btn">Change Keywords</button>
+    `;
+    
+    keywordsDisplay.style.display = 'flex';
+    
+    // Add event listener for Change Keywords button
+    const changeKeywordsBtn = keywordsDisplay.querySelector('.ttg-change-keywords-btn');
+    changeKeywordsBtn.addEventListener('click', () => {
+      this.showInputHideKeywords(generatorForm, keywords, keywordsInput, generateButton, resultContainer, noteText, charCounter, keywordsDisplay);
+    });
+  }
+  
+  showInputHideKeywords(generatorForm, keywords, keywordsInput, generateButton, resultContainer, noteText, charCounter, keywordsDisplay) {
+    // Show input elements
+    keywordsInput.style.display = 'block';
+    generateButton.style.display = 'block';
+    noteText.style.display = 'flex';
+    
+    console.log(keywordsDisplay)
+    // Hide keywords display
+    if (keywordsDisplay) {
+      keywordsDisplay.style.display = 'none';
+    }
+    
+    // Focus back to input
+    keywordsInput.focus();
+    
+    // Reset refresh count when changing keywords
+    this.refreshCount = 0;
+  }
+
+  getExistingDescriptionContent() {
+    // Find the description container first (same approach as when adding description generator)
+    let descriptionContainer = document.querySelector('.input-container.description.style-scope.ytcp-video-metadata-editor-basics#description-container');
+    
+    if (!descriptionContainer) {
+      // Fallback: look for any description container
+      descriptionContainer = document.querySelector('[id*="description-container"], [class*="description"], .ytcp-video-metadata-editor [aria-label*="description" i]');
+    }
+    
+    if (!descriptionContainer) {
+      return '';
+    }
+
+    // Find the specific textbox element within the description container
+    let descriptionInput = descriptionContainer.querySelector('#textbox[contenteditable="true"][role="textbox"].style-scope.ytcp-social-suggestions-textbox');
+    
+    if (!descriptionInput) {
+      // Fallback selectors within the description container
+      const fallbackSelectors = [
+        '#textbox[contenteditable="true"][aria-label*="Tell viewers about your video"]',
+        '#textbox[contenteditable="true"]',
+        '[contenteditable="true"][aria-label*="Tell viewers about your video"]',
+        'div[contenteditable="true"]'
+      ];
+      
+      for (const selector of fallbackSelectors) {
+        descriptionInput = descriptionContainer.querySelector(selector);
+        if (descriptionInput) {
+          break;
+        }
+      }
+    }
+    
+    if (descriptionInput) {
+      // Get existing content (preserve text content, not HTML)
+      const existingContent = descriptionInput.textContent || descriptionInput.innerText || '';
+      return existingContent.trim();
+    }
+    
+    return '';
   }
 
   async generateDescriptionFromKeywords(keywords, generateButton, resultContainer, generatorForm, descriptionIndex = 1, reloadBtn = null, descriptionDisplay = null, counterText = null, prevBtn = null, nextBtn = null) {
@@ -1153,10 +1283,20 @@ class YouTubeStudioIntegration {
     }
     
     try {
+      // Increment refresh count if this is a regeneration (not the first generation)
+      if (descriptionIndex > 1) {
+        this.refreshCount++;
+      }
+      
+      // Get existing description content from YouTube's description field
+      const existingDescription = this.getExistingDescriptionContent();
+      
       // Use message passing to background script to avoid CORS issues
       const response = await chrome.runtime.sendMessage({
         action: 'generateDescription',
-        keywords: keywords
+        description: existingDescription,
+        keywords: keywords,
+        refreshCount: this.refreshCount
       });
 
       if (response && response.success && response.description) {

@@ -1187,6 +1187,50 @@ html[dark] .ttg-thumbnail-loading-item,
   color: #666 !important;
   margin-top: -3px !important;
   padding-left: 5px !important;
+  display: flex;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.ttg-char-counter {
+  font-size: 12px !important;
+  color: #666 !important;
+  font-weight: 500 !important;
+}
+
+/* Keywords Display Container */
+.ttg-keywords-display {
+  display: flex;
+  gap: 20px !important;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.ttg-keywords-recommendation-text {
+  font-size: 13px !important;
+  color: #666 !important;
+  line-height: 1.4 !important;
+  margin-bottom: 5px !important;
+}
+
+.ttg-change-keywords-btn {
+  background: var(--primary) !important;
+  white-space: nowrap;
+  padding: 8px 12px !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  width: max-content !important;
+}
+
+.ttg-change-keywords-btn:hover {
+  background: #d94463 !important;
+  transform: translateY(-1px) !important;
 }
 
 /* Description Result Container */
@@ -1496,4 +1540,30 @@ html[dark] .ttg-insert-description-btn:hover,
 html[dark] .ttg-rotating,
 [data-theme="dark"] .ttg-rotating {
   animation: ttg-rotate 0.5s linear !important;
+}
+
+/* Dark mode support for keywords display */
+.ttg-dark-mode .ttg-keywords-recommendation-text,
+html[dark] .ttg-keywords-recommendation-text,
+[data-theme="dark"] .ttg-keywords-recommendation-text {
+  color: #b0b0b0 !important;
+}
+
+.ttg-dark-mode .ttg-change-keywords-btn,
+html[dark] .ttg-change-keywords-btn,
+[data-theme="dark"] .ttg-change-keywords-btn {
+  background: var(--primary) !important;
+  color: white !important;
+}
+
+.ttg-dark-mode .ttg-change-keywords-btn:hover,
+html[dark] .ttg-change-keywords-btn:hover,
+[data-theme="dark"] .ttg-change-keywords-btn:hover {
+  background: #d94463 !important;
+}
+
+.ttg-dark-mode .ttg-char-counter,
+html[dark] .ttg-char-counter,
+[data-theme="dark"] .ttg-char-counter {
+  color: #b0b0b0 !important;
 }
