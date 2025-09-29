@@ -100,6 +100,28 @@ class TubeTitleGeneratorBackground {
           });
         return true;
 
+      case 'generateDescription':
+        this.generateDescription(request.keywords)
+          .then(description => {
+            sendResponse({ success: true, description });
+          })
+          .catch(error => {
+            const errorResponse = {
+              success: false,
+              error: error.message
+            };
+            
+            if (error.code) {
+              errorResponse.code = error.code;
+            }
+            
+            if (error.apiResponse) {
+              errorResponse.apiResponse = error.apiResponse;
+            }
+            
+            sendResponse(errorResponse);
+          });
+        return true;
         
       case 'checkYouTubeStudio':
         this.checkYouTubeStudio(sender.tab)
@@ -279,6 +301,16 @@ class TubeTitleGeneratorBackground {
     }
   }
 
+  async generateDescription(keywords) {
+    try {
+      const response = await this.makeDescriptionApiCall(keywords);
+      return response.description;
+    } catch (error) {
+      // Return fallback description
+      return this.getStaticDescription(keywords);
+    }
+  }
+
   async makeApiCall(input, type) {
     const API_ENDPOINT = 'https://api.tubemaster.ai/api/generate-titles';
     
@@ -376,6 +408,70 @@ class TubeTitleGeneratorBackground {
     } catch (error) {
       console.log('TubeMate: Thumbnail API call failed:', error.message);
     }
+  }
+
+  async makeDescriptionApiCall(keywords) {
+    const API_ENDPOINT = 'https://api.tubemaster.ai/api/generate-description';
+    
+    const requestPayload = {
+      keywords: keywords,
+    };
+
+    console.log('TubeMate: Making description API request to', API_ENDPOINT);
+
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'TubeMate-Extension/1.0'
+        },
+        body: JSON.stringify(requestPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data && data.success === false) {
+        const errorMessage = data.error || 'Description API returned error';
+        const errorCode = data.code || 'UNKNOWN_ERROR';
+        
+        const apiError = new Error(errorMessage);
+        apiError.code = errorCode;
+        apiError.apiResponse = data;
+        throw apiError;
+      }
+      
+      return {
+        description: data.description
+      };
+      
+    } catch (error) {
+      console.log('TubeMate: Description API call failed:', error.message);
+      throw error; // Re-throw to be caught by generateDescription
+    }
+  }
+
+  getStaticDescription(keywords) {
+    // Fallback static description generation
+    const keywordsList = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    
+    const templates = [
+      `Discover everything you need to know about ${keywordsList.join(', ')}! In this comprehensive guide, we'll explore the key concepts and provide practical tips to help you succeed.`,
+      
+      `Looking to learn more about ${keywordsList.join(', ')}? This video covers all the essential information you need, from beginner basics to advanced techniques.`,
+      
+      `Join us as we dive deep into ${keywordsList.join(', ')}. Whether you're just starting out or looking to expand your knowledge, this video has something for everyone.`,
+      
+      `Everything you need to know about ${keywordsList.join(', ')} in one place! We'll break down the concepts, share proven strategies, and help you get started today.`
+    ];
+    
+    // Return a random template
+    const randomIndex = Math.floor(Math.random() * templates.length);
+    return templates[randomIndex] + '\n\n#' + keywordsList.join(' #');
   }
 
   getStaticTitleSuggestions(input) {

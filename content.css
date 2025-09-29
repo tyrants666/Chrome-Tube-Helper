@@ -501,6 +501,7 @@ html[dark] .ttg-thumbnail-spinner,
   font-size: 12px;
   font-weight: 400;
   margin: 0;
+  line-height: 1;
 }
 
 .ttg-suggestions-content {
@@ -1030,4 +1031,469 @@ html[dark] .ttg-thumbnail-loading-item,
 [data-theme="dark"] .ttg-thumbnail-loading-item {
   background: #2d2d2d !important;
   border-color: #404040 !important;
+}
+
+/* -----------------------------Description Generator Section Styles ----------------------------- */
+/* -----------------------------Description Generator Section Styles ----------------------------- */
+.ttg-description-generator-section {
+  border: 1px solid #ccc !important;
+  border-top: none;
+  border-radius: 8px !important;
+  padding: 13px 14px 10px !important;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 1000 !important;
+  box-shadow: none !important;
+  border-radius: 0 0 8px 8px !important;
+  border-top: none !important;
+  margin-top: -4px !important;
+  background: transparent !important;
+}
+
+.ttg-description-generator-section .ttg-suggestions-header{
+  display: none;
+  padding: 3px 0 12px !important;
+}
+.ttg-description-generator-section .ttg-suggestions-logo-img {
+  width: 18px;
+  height: auto;
+}
+.ttg-description-generator-section .ttg-suggestions-logo-img {
+  width: 18px;
+  height: auto;
+}
+.ttg-description-generator-section .ttg-description-generator-initial-btn .ttg-suggestions-logo-img {
+  width: 16px;
+  height: auto;
+}
+
+.ttg-description-generator-section .ttg-suggestions-header {
+  background-color: transparent !important;
+}
+
+.ttg-description-generator-section .ttg-suggestions-title {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: #252626 !important;
+  position: relative;
+  top: 1px !important;
+}
+
+.ttg-description-generator-content-wrapper {
+  display: block !important;
+  padding: 0 !important;
+  /* padding: 8px !important;
+  padding-top: 12px !important; */
+}
+
+/* Initial Button Styles */
+.ttg-description-generator-initial-btn {
+  border: 1px solid var(--primary);
+  border-radius: 20px;
+  width: max-content;
+  padding: 7px 16px;
+  color: var(--primary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ttg-description-generator-initial-btn:hover {
+  background: rgba(238, 85, 114, 0.05) !important;
+}
+
+.ttg-initial-btn-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.ttg-initial-btn-icon {
+  font-size: 18px !important;
+}
+
+.ttg-initial-btn-text {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: var(--primary) !important;
+  line-height: 1;
+}
+
+/* Generator Form Styles */
+.ttg-description-generator-form {
+  padding: 0px 0px 15px !important;
+  position: relative;
+}
+
+.ttg-keywords-input {
+  font-family: Arial !important;
+  padding: 1px 115px 1px 16px !important;
+  line-height: 1;
+  height: 32px;
+  width: 74% !important;
+  border: 1px solid #e8e8e8 !important;
+  border-radius: 20px !important;
+  font-size: 13.33px !important;
+  margin-bottom: 4px !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.ttg-keywords-input:hover {
+  outline: none !important;
+  border-color: var(--primary) !important;
+}
+.ttg-keywords-input:focus {
+  outline: none !important;
+  border-color: var(--primary) !important;
+}
+
+.ttg-generate-description-btn {
+  position: absolute;
+  padding: 7px 21px !important;
+  line-height: 1;
+  top: 5px;
+  right: 5px;
+  font-size: 14px !important;
+  align-items: center;
+  background: #E8E8E8 !important;
+  color: #8f8f8f !important;
+  border: none !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  margin-bottom: 8px !important;
+}
+
+.ttg-generate-description-btn:hover:not(:disabled) {
+  background: #d94463 !important;
+  color: #fff !important;
+}
+
+.ttg-generate-description-btn:disabled {
+  background: #ccc !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.ttg-keywords-note {
+  font-size: 12px !important;
+  color: #666 !important;
+  margin-top: -3px !important;
+  padding-left: 5px !important;
+}
+
+/* Description Result Container */
+.ttg-description-result-container {
+  padding: 10px !important;
+  border-radius: 5px !important;
+  background: #ee55721c !important;
+}
+
+.ttg-description-controls-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-top: 12px !important;
+}
+
+.ttg-description-nav-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0px !important;
+}
+
+.ttg-description-action-buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.ttg-description-nav-btn {
+  background: transparent !important;
+  border-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  color: #495057 !important;
+  transition: all 0.2s ease !important;
+}
+.ttg-description-reload-btn{
+  height: 20px !important;
+  border-radius: 0 !important;
+}
+.ttg-description-nav-btn:hover:not(:disabled) {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #ee5572 !important;
+}
+
+.ttg-description-nav-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.ttg-description-prev-btn{
+  border-left: 1px solid #cccccc8a !important;
+}
+button.ttg-description-prev-btn:hover{
+  border-left: 1px solid #cccccc8a !important;
+}
+button.ttg-description-prev-btn:hover:not(:disabled){
+  border-left-color: #cccccc8a !important;
+}
+.ttg-description-prev-btn svg{
+  width: 20px !important;
+  height: 20px !important;
+}
+.ttg-description-next-btn svg{
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.ttg-rotating {
+  animation: ttg-rotate 0.5s linear !important;
+}
+
+@keyframes ttg-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ttg-description-counter {
+  font-size: 14px !important;
+  color: #0d0d0d !important;
+  font-weight: 400 !important;
+  padding: 0px !important;
+  white-space: nowrap !important;
+}
+
+.ttg-description-display {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  background: #f8f9fa !important;
+  border-radius: 8px !important;
+  color: #0d0d0d !important;
+  white-space: pre-wrap !important;
+  max-height: unset !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin-bottom: 40px !important;
+}
+
+.ttg-copy-description-btn {
+  background: transparent !important;
+  color: #ee5572 !important;
+  border: 1px solid #ee5572 !important;
+  border-radius: 50px !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.ttg-copy-description-btn:hover {
+  background: #ee5572 !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+}
+
+.ttg-insert-description-btn {
+  background: #ee5572 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 50px !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.ttg-insert-description-btn:hover {
+  background: #d94463 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Error State */
+.ttg-description-error {
+  text-align: center !important;
+  padding: 20px !important;
+  color: #dc3545 !important;
+}
+
+.ttg-error-icon {
+  font-size: 24px !important;
+  margin-bottom: 8px !important;
+}
+
+.ttg-error-message {
+  font-size: 14px !important;
+  margin-bottom: 16px !important;
+}
+
+.ttg-retry-description-btn {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 8px 16px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.ttg-retry-description-btn:hover {
+  background: #c82333 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Dark mode support for description generator */
+.ttg-dark-mode .ttg-description-generator-section,
+html[dark] .ttg-description-generator-section,
+[data-theme="dark"] .ttg-description-generator-section {
+  background: #1f1f1f !important;
+  border-color: #404040 !important;
+  color: white !important;
+}
+
+.ttg-dark-mode .ttg-description-generator-section .ttg-suggestions-header,
+html[dark] .ttg-description-generator-section .ttg-suggestions-header,
+[data-theme="dark"] .ttg-description-generator-section .ttg-suggestions-header {
+  background: #1f1f1f !important;
+}
+
+.ttg-dark-mode .ttg-description-generator-section .ttg-suggestions-title,
+html[dark] .ttg-description-generator-section .ttg-suggestions-title,
+[data-theme="dark"] .ttg-description-generator-section .ttg-suggestions-title {
+  color: #fff !important;
+}
+
+.ttg-dark-mode .ttg-description-generator-initial-btn,
+html[dark] .ttg-description-generator-initial-btn,
+[data-theme="dark"] .ttg-description-generator-initial-btn {
+  border-color: #404040 !important;
+  background: transparent !important;
+}
+
+.ttg-dark-mode .ttg-description-generator-initial-btn:hover,
+html[dark] .ttg-description-generator-initial-btn:hover,
+[data-theme="dark"] .ttg-description-generator-initial-btn:hover {
+  border-color: #ee5572 !important;
+  background: rgba(238, 85, 114, 0.1) !important;
+}
+
+.ttg-dark-mode .ttg-initial-btn-text,
+html[dark] .ttg-initial-btn-text,
+[data-theme="dark"] .ttg-initial-btn-text {
+  color: #b0b0b0 !important;
+}
+
+.ttg-dark-mode .ttg-keywords-input,
+html[dark] .ttg-keywords-input,
+[data-theme="dark"] .ttg-keywords-input {
+  background: #2d2d2d !important;
+  border-color: #404040 !important;
+  color: white !important;
+}
+
+.ttg-dark-mode .ttg-keywords-input:focus,
+html[dark] .ttg-keywords-input:focus,
+[data-theme="dark"] .ttg-keywords-input:focus {
+  border-color: #ee5572 !important;
+  box-shadow: 0 0 0 3px rgba(238, 85, 114, 0.1) !important;
+}
+
+.ttg-dark-mode .ttg-keywords-note,
+html[dark] .ttg-keywords-note,
+[data-theme="dark"] .ttg-keywords-note {
+  color: #b0b0b0 !important;
+}
+
+.ttg-dark-mode .ttg-description-nav-btn,
+html[dark] .ttg-description-nav-btn,
+[data-theme="dark"] .ttg-description-nav-btn {
+  background: #2d2d2d !important;
+  border-color: #404040 !important;
+  color: #b0b0b0 !important;
+}
+
+.ttg-dark-mode .ttg-description-nav-btn:hover:not(:disabled),
+html[dark] .ttg-description-nav-btn:hover:not(:disabled),
+[data-theme="dark"] .ttg-description-nav-btn:hover:not(:disabled) {
+  background: #404040 !important;
+  border-color: #ee5572 !important;
+  color: #ee5572 !important;
+}
+
+.ttg-dark-mode .ttg-description-display,
+html[dark] .ttg-description-display,
+[data-theme="dark"] .ttg-description-display {
+  background: #2d2d2d !important;
+  border-color: #404040 !important;
+  color: white !important;
+}
+
+.ttg-dark-mode .ttg-description-error,
+html[dark] .ttg-description-error,
+[data-theme="dark"] .ttg-description-error {
+  color: #ff6b6b !important;
+}
+
+.ttg-dark-mode .ttg-description-counter,
+html[dark] .ttg-description-counter,
+[data-theme="dark"] .ttg-description-counter {
+  color: #b0b0b0 !important;
+}
+
+.ttg-dark-mode .ttg-copy-description-btn,
+html[dark] .ttg-copy-description-btn,
+[data-theme="dark"] .ttg-copy-description-btn {
+  background: transparent !important;
+  color: #ee5572 !important;
+  border-color: #ee5572 !important;
+}
+
+.ttg-dark-mode .ttg-copy-description-btn:hover,
+html[dark] .ttg-copy-description-btn:hover,
+[data-theme="dark"] .ttg-copy-description-btn:hover {
+  background: #ee5572 !important;
+  color: white !important;
+}
+
+.ttg-dark-mode .ttg-insert-description-btn,
+html[dark] .ttg-insert-description-btn,
+[data-theme="dark"] .ttg-insert-description-btn {
+  background: #ee5572 !important;
+  color: white !important;
+}
+
+.ttg-dark-mode .ttg-insert-description-btn:hover,
+html[dark] .ttg-insert-description-btn:hover,
+[data-theme="dark"] .ttg-insert-description-btn:hover {
+  background: #d94463 !important;
+}
+
+.ttg-dark-mode .ttg-rotating,
+html[dark] .ttg-rotating,
+[data-theme="dark"] .ttg-rotating {
+  animation: ttg-rotate 0.5s linear !important;
 }
