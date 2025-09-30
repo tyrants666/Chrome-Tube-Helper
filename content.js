@@ -5,6 +5,7 @@ class YouTubeStudioIntegration {
       'input[aria-label*="title" i]:not([aria-label*="description" i])', 
       'input[placeholder*="Title" i]:not([placeholder*="description" i])',
       'input[placeholder*="title" i]:not([placeholder*="description" i])',
+      'ytcp-video-title#title-wrapper input:not([aria-label*="description" i])',
       '.ytcp-video-title input:not([aria-label*="description" i])',
       '[data-testid*="title"] input:not([aria-label*="description" i])',
       'input[name*="title" i]:not([name*="description" i])',
@@ -368,42 +369,16 @@ class YouTubeStudioIntegration {
       return null;
     }
     
-    // First, check if we're in a modal/dialog context
-    const modalSelectors = [
-      'ytcp-uploads-dialog',
-      'tp-yt-paper-dialog',
-      'ytcp-dialog',
-      '[role="dialog"]',
-      '.ytcp-video-metadata-editor',
-      '[aria-modal="true"]',
-      '.ytcp-video-metadata-sidebar',
-      '#dialog.style-scope.ytcp-uploads-dialog',
-      'ytcp-uploads-dialog tp-yt-paper-dialog'
-    ];
-    
-    let modalContainer = null;
-    
-    for (const modalSelector of modalSelectors) {
-      modalContainer = document.querySelector(modalSelector);
-      if (modalContainer) {
-        break;
-      }
-    }
-    
-    // If no modal is found, don't search for title inputs
-    if (!modalContainer) {
-      return null;
-    }
-    
-    // Try each selector but only within the modal container
+    // Try each title selector directly - simplified approach like description and thumbnail sections
     for (const selector of this.titleSelectors) {
       try {
-        const elements = modalContainer.querySelectorAll(selector);
+        const elements = document.querySelectorAll(selector);
         if (elements.length > 0) {
           
           for (const element of elements) {
             if (this.isValidTitleInput(element)) {
               if (element !== this.currentTitleInput) {
+                console.log(`TubeMate: Found title input with selector: ${selector}`);
                 this.currentTitleInput = element;
                 this.setupTitleInputIntegration(element);
               }
@@ -416,11 +391,11 @@ class YouTubeStudioIntegration {
       }
     }
     
-    // If no specific title input found, try a broader search within the modal
+    // If no specific title input found, try a broader search
     try {
-      const allInputs = modalContainer.querySelectorAll('input, textarea, [contenteditable="true"], [role="textbox"]');
+      const allInputs = document.querySelectorAll('input, textarea, [contenteditable="true"], [role="textbox"]');
       
-      // First pass: Look for title-specific elements within modal
+      // Look for title-specific elements
       for (const input of allInputs) {
         const ariaLabel = (input.getAttribute('aria-label') || '').toLowerCase();
         const placeholder = (input.placeholder || '').toLowerCase();
@@ -431,46 +406,13 @@ class YouTubeStudioIntegration {
         if (ariaLabel.includes('title') || placeholder.includes('title') || name.includes('title') || id.includes('title')) {
           
           if (this.isValidTitleInput(input)) {
-            if (input !== this.currentTitleInput) {
-              this.currentTitleInput = input;
-              this.setupTitleInputIntegration(input);
+            // Skip description fields
+            if (ariaLabel.includes('description') || placeholder.includes('description') || name.includes('description') || id.includes('description')) {
+              continue;
             }
-            return input;
-          }
-        }
-      }
-      
-      // Second pass: Look for any visible, editable input that could be a title field within modal
-      for (const input of allInputs) {
-        // Skip if it's clearly not a title field
-        const ariaLabel = (input.getAttribute('aria-label') || '').toLowerCase();
-        const placeholder = (input.placeholder || '').toLowerCase();
-        const name = (input.name || '').toLowerCase();
-        const id = (input.id || '').toLowerCase();
-        
-        // Skip description fields more thoroughly
-        if (ariaLabel.includes('description') || 
-            ariaLabel.includes('tell viewers') ||
-            ariaLabel.includes('tell your viewers') ||
-            placeholder.includes('description') ||
-            placeholder.includes('tell viewers') ||
-            name.includes('description') ||
-            id.includes('description')) {
-          continue;
-        }
-        
-        // Skip if it's in a description container
-        const descriptionContainer = input.closest('[aria-label*="description" i], [data-testid*="description" i], .ytcp-video-description');
-        if (descriptionContainer) {
-          continue;
-        }
-        
-        // Check if it's a valid input and visible
-        if (this.isValidTitleInput(input)) {
-          // Additional check: see if it's in a likely title area
-          const parentContainer = input.closest('.ytcp-video-metadata-editor, .ytcp-video-title, [data-testid*="title"]');
-          if (parentContainer || input.offsetWidth > 200) { // Likely title fields are wider
+            
             if (input !== this.currentTitleInput) {
+              console.log('TubeMate: Found title input via broad search');
               this.currentTitleInput = input;
               this.setupTitleInputIntegration(input);
             }
@@ -479,7 +421,7 @@ class YouTubeStudioIntegration {
         }
       }
     } catch (error) {
-      console.log(error);
+      console.log('TubeMate: Error in findTitleInput:', error);
     }
     
     this.currentTitleInput = null;
@@ -1759,7 +1701,6 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
     alert(`Thumbnail selected! URL: ${thumbnailUrl}`);
   }
 
-  // Removed showThumbnailCharacterLimitMessage method - no longer needed with permanent section
 
   addTitleSuggestionsSection(titleInput) {
     
@@ -1781,42 +1722,33 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
       this.titleSuggestionsSection = null;
     }
 
-    // Find the specific container-bottom element in the Details section
-    // This is the exact location where suggestions should be placed according to the user
+    // Find the target container where suggestions should be placed - simplified approach
     let targetContainer = null;
     
-    // Look for the specific container-bottom element that appears after the title input
-    const containerBottomElements = document.querySelectorAll('.container-bottom.style-scope.ytcp-social-suggestions-textbox');
+    // First, try to find the specific container-bottom element as specified by the user
+    targetContainer = document.querySelector('.container-bottom.style-scope.ytcp-social-suggestions-textbox');
     
-    for (const element of containerBottomElements) {
-      // Check if this container-bottom is related to the title input by checking if it's in the same form/section
-      const parentSection = element.closest('.ytcp-video-metadata-editor, .ytcp-uploads-dialog, .ytcp-video-metadata-sidebar');
-      if (parentSection && parentSection.contains(titleInput)) {
-        targetContainer = element;
-        break;
-      }
-    }
-    
-    // If we can't find the specific container-bottom, look for it by proximity to the title input
-    if (!targetContainer) {
-      // Find the title input's parent container first
-      const titleContainer = titleInput.closest('.ytcp-video-metadata-editor, .ytcp-uploads-dialog, .ytcp-video-metadata-sidebar');
-      if (titleContainer) {
-        // Look for container-bottom within this container
-        targetContainer = titleContainer.querySelector('.container-bottom.style-scope.ytcp-social-suggestions-textbox');
-      }
-    }
-    
-    // Final fallback: look for any container-bottom that might be related to title
-    if (!targetContainer) {
-      const allContainerBottoms = document.querySelectorAll('.container-bottom.style-scope.ytcp-social-suggestions-textbox');
-      // Use the first one if it exists
-      if (allContainerBottoms.length > 0) {
-        targetContainer = allContainerBottoms[0];
+    if (targetContainer) {
+      console.log('TubeMate: Found title target container where to place suggestions box with main selector');
+    } else {
+      // Fallback: look for any container-bottom element that might work
+      const fallbackSelectors = [
+        '.container-bottom',
+        '.style-scope.ytcp-social-suggestions-textbox',
+        '.ytcp-social-suggestions-textbox'
+      ];
+      
+      for (const selector of fallbackSelectors) {
+        targetContainer = document.querySelector(selector);
+        if (targetContainer) {
+          console.log(`TubeMate: Found target container with fallback selector: ${selector}`);
+          break;
+        }
       }
     }
 
     if (!targetContainer) {
+      console.log('TubeMate: No suitable target container found for title suggestions');
       return;
     }
 
