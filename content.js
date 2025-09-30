@@ -1,19 +1,5 @@
 class YouTubeStudioIntegration {
   constructor() {
-    this.titleSelectors = [
-      'input[aria-label*="Title" i]:not([aria-label*="description" i])',
-      'input[aria-label*="title" i]:not([aria-label*="description" i])', 
-      'input[placeholder*="Title" i]:not([placeholder*="description" i])',
-      'input[placeholder*="title" i]:not([placeholder*="description" i])',
-      'ytcp-video-title#title-wrapper input:not([aria-label*="description" i])',
-      '.ytcp-video-title input:not([aria-label*="description" i])',
-      '[data-testid*="title"] input:not([aria-label*="description" i])',
-      'input[name*="title" i]:not([name*="description" i])',
-      '.ytcp-video-metadata-editor input:not([aria-label*="description" i]):not([placeholder*="description" i])',
-      'input[type="text"]:not([aria-label*="description" i]):not([placeholder*="description" i])',
-    ];
-
-    
     this.suggestionContainer = null;
     this.titleSuggestionsSection = null;
     this.thumbnailBuilderSection = null;
@@ -367,28 +353,6 @@ class YouTubeStudioIntegration {
     // Check if we're actually on YouTube Studio
     if (!window.location.href.includes('studio.youtube.com')) {
       return null;
-    }
-    
-    // Try each title selector directly - simplified approach like description and thumbnail sections
-    for (const selector of this.titleSelectors) {
-      try {
-        const elements = document.querySelectorAll(selector);
-        if (elements.length > 0) {
-          
-          for (const element of elements) {
-            if (this.isValidTitleInput(element)) {
-              if (element !== this.currentTitleInput) {
-                console.log(`TubeMate: Found title input with selector: ${selector}`);
-                this.currentTitleInput = element;
-                this.setupTitleInputIntegration(element);
-              }
-              return element;
-            }
-          }
-        }
-      } catch (error) {
-        
-      }
     }
     
     // If no specific title input found, try a broader search
@@ -918,7 +882,7 @@ class YouTubeStudioIntegration {
       return;
     }
 
-    // Find the description container as specified by the user
+    // Find the description container 
     let descriptionContainer = document.querySelector('.input-container.description.style-scope.ytcp-video-metadata-editor-basics#description-container');
     
     if (!descriptionContainer) {
@@ -1153,8 +1117,6 @@ class YouTubeStudioIntegration {
     keywordsInput.style.display = 'block';
     generateButton.style.display = 'block';
     noteText.style.display = 'flex';
-    
-    console.log(keywordsDisplay)
     // Hide keywords display
     if (keywordsDisplay) {
       keywordsDisplay.style.display = 'none';
