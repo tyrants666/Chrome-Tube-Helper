@@ -1054,8 +1054,6 @@ class YouTubeStudioIntegration {
     // Store references for description functionality
     this.descriptionsData = [];
     this.currentDescriptionIndex = 0;
-    this.refreshCount = 0; // Initialize refresh count
-    this.lastKeywords = ''; // Track last used keywords
 
     // Get references to noteText and charCounter that were created earlier
     const noteText = generatorForm.querySelector('.ttg-keywords-note');
@@ -1082,12 +1080,6 @@ class YouTubeStudioIntegration {
 
       // Reset border color
       keywordsInput.style.borderColor = '#e9ecef';
-
-      // Check if keywords changed - reset refresh count if they did
-      if (keywords !== this.lastKeywords) {
-        this.refreshCount = 0;
-        this.lastKeywords = keywords;
-      }
 
       await this.generateDescriptionFromKeywords(keywords, generateButton, resultContainer, generatorForm);
       
@@ -1170,9 +1162,27 @@ class YouTubeStudioIntegration {
     
     // Focus back to input
     keywordsInput.focus();
+  }
+
+  getTitleInputContent() {
+    // Get the current title input content
+    if (this.currentTitleInput) {
+      const titleContent = this.currentTitleInput.value || 
+                          this.currentTitleInput.textContent || 
+                          this.currentTitleInput.innerText || '';
+      return titleContent.trim();
+    }
     
-    // Reset refresh count when changing keywords
-    this.refreshCount = 0;
+    // Fallback: try to find any title input
+    const titleInput = this.findTitleInput();
+    if (titleInput) {
+      const titleContent = titleInput.value || 
+                          titleInput.textContent || 
+                          titleInput.innerText || '';
+      return titleContent.trim();
+    }
+    
+    return '';
   }
 
   getExistingDescriptionContent() {
@@ -1225,20 +1235,18 @@ class YouTubeStudioIntegration {
     }
     
     try {
-      // Increment refresh count if this is a regeneration (not the first generation)
-      if (descriptionIndex > 1) {
-        this.refreshCount++;
-      }
+      // Get title content from the title input field
+      const titleContent = this.getTitleInputContent();
       
-      // Get existing description content from YouTube's description field
-      const existingDescription = this.getExistingDescriptionContent();
+      // Convert keywords string to array
+      const keywordsArray = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
       
       // Use message passing to background script to avoid CORS issues
       const response = await chrome.runtime.sendMessage({
         action: 'generateDescription',
-        description: existingDescription,
-        keywords: keywords,
-        refreshCount: this.refreshCount
+        idea: titleContent,
+        keywords: keywordsArray,
+        title: titleContent
       });
 
       if (response && response.success && response.description) {

@@ -101,7 +101,7 @@ class TubeTitleGeneratorBackground {
         return true;
 
       case 'generateDescription':
-        this.generateDescription(request.keywords, request.refreshCount, request.description)
+        this.generateDescription(request.idea, request.keywords, request.title)
           .then(description => {
             sendResponse({ success: true, description });
           })
@@ -301,9 +301,9 @@ class TubeTitleGeneratorBackground {
     }
   }
 
-  async generateDescription(keywords, refreshCount, existingDescription) {
+  async generateDescription(idea, keywords, title) {
     try {
-      const response = await this.makeDescriptionApiCall(keywords, refreshCount, existingDescription);
+      const response = await this.makeDescriptionApiCall(idea, keywords, title);
       return response.description;
     } catch (error) {
       // Return fallback description
@@ -410,13 +410,13 @@ class TubeTitleGeneratorBackground {
     }
   }
 
-  async makeDescriptionApiCall(keywords, refreshCount, existingDescription) {
+  async makeDescriptionApiCall(idea, keywords, title) {
     const API_ENDPOINT = 'https://api.tubemaster.ai/api/generate-description';
     
     const requestPayload = {
-      description: existingDescription || '',
-      keywords: keywords,
-      refreshCount: refreshCount || 0
+      idea: idea || '',
+      keywords: keywords || [],
+      title: title || ''
     };
 
     console.log('TubeMate: Making description API request to', API_ENDPOINT);
