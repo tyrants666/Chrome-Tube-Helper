@@ -986,7 +986,7 @@ class YouTubeStudioIntegration {
     initialButton.innerHTML = `
       <div class="ttg-initial-btn-content">
         
-        <img class="ttg-suggestions-logo-img ttg-suggestions-logo-img-styled" alt="TubeMate" src="chrome-extension://nncgnmmhhadfpaoekhoicclkhghcdclo/icons/logo.png">
+        <img class="ttg-suggestions-logo-img ttg-suggestions-logo-img-styled" alt="TubeMate" src="${chrome.runtime.getURL('icons/logo.png')}">
         <span class="ttg-initial-btn-text">Get AI description recommendations</span>
       </div>
     `;
