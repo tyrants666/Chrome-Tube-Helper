@@ -859,7 +859,8 @@ html[dark] .ttg-suggestions-error,
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  max-height: 194px;
+  max-height: 257px;
+  /* max-height: 194px; */
   overflow-y: auto;
   overflow-x: hidden;
 }

@@ -116,8 +116,10 @@ class YouTubeStudioIntegration {
     // Ensure CSS is loaded
     this.ensureCSSLoaded();
     
-    // Start immediate integration without delay
+    // Start immediate integration without delay - add all sections
     this.findTitleInput();
+    
+    // Add all sections immediately after authentication
     this.addThumbnailBuilderSection();
     this.addDescriptionGeneratorSection();
     this.addExtensionIndicator();
@@ -168,27 +170,28 @@ class YouTubeStudioIntegration {
         return;
       }
       
-      if (!window.location.href.includes('studio.youtube.com')) {
+      if (!window.location.href.includes('studio.youtube.com') || !this.isAuthenticated) {
         return;
       }
       
-        if (!this.titleSuggestionsSection || !document.body.contains(this.titleSuggestionsSection)) {
-          this.findTitleInput();
-          
-          if (this.currentTitleInput) {
-            this.addTitleSuggestionsSection(this.currentTitleInput);
-          }
-          
-          // Also check for thumbnail builder section
-          if (!this.thumbnailBuilderSection || !document.body.contains(this.thumbnailBuilderSection)) {
-            this.addThumbnailBuilderSection();
-          }
-          
-          // Also check for description generator section
-          if (!this.descriptionGeneratorSection || !document.body.contains(this.descriptionGeneratorSection)) {
-            this.addDescriptionGeneratorSection();
-          }
+      // Check for title suggestions section
+      if (!this.titleSuggestionsSection || !document.body.contains(this.titleSuggestionsSection)) {
+        this.findTitleInput();
+        
+        if (this.currentTitleInput) {
+          this.addTitleSuggestionsSection(this.currentTitleInput);
         }
+      }
+      
+      // Always check for thumbnail builder section
+      if (!this.thumbnailBuilderSection || !document.body.contains(this.thumbnailBuilderSection)) {
+        this.addThumbnailBuilderSection();
+      }
+      
+      // Always check for description generator section
+      if (!this.descriptionGeneratorSection || !document.body.contains(this.descriptionGeneratorSection)) {
+        this.addDescriptionGeneratorSection();
+      }
     }, 2000);
   }
 
@@ -2163,6 +2166,14 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
           this.isAuthenticated = true;
           // Add all sections now that user is authenticated
           this.addAllSections();
+          
+          // Also ensure CSS is loaded
+          this.ensureCSSLoaded();
+          
+          // Start periodic checks if not already running
+          if (!this.periodicCheckInterval) {
+            this.startPeriodicChecks();
+          }
         }
       });
       sendResponse({ success: true });
@@ -2175,6 +2186,15 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
       // User signed in, add all sections
       this.isAuthenticated = true;
       this.addAllSections();
+      
+      // Also ensure CSS is loaded
+      this.ensureCSSLoaded();
+      
+      // Start periodic checks if not already running
+      if (!this.periodicCheckInterval) {
+        this.startPeriodicChecks();
+      }
+      
       sendResponse({ success: true });
     }
   }
