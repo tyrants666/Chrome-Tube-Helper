@@ -1684,7 +1684,6 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
     }
     
     try {
-      // Use message passing to background script to avoid CORS issues
       const response = await chrome.runtime.sendMessage({
         action: 'generateThumbnails',
         description: description

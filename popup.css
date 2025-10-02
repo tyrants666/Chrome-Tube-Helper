@@ -74,7 +74,6 @@ body {
   background: white;
   border-radius: 12px;
   padding: 20px;
-  margin-bottom: 20px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
@@ -135,6 +134,7 @@ body {
   font-weight: 600;
   color: #333;
   margin-bottom: 4px;
+  text-align: center;
 }
 
 .user-role {
