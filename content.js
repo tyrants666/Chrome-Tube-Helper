@@ -9,6 +9,7 @@ class YouTubeStudioIntegration {
     this.lastPopulatedTitle = null;
     this.isPopulatingTitle = false;
     this.descriptionTimeout = null;
+    this.isAuthenticated = false;
     
     this.init();
   }
@@ -42,7 +43,75 @@ class YouTubeStudioIntegration {
     
   }
 
-  setupIntegration() {
+  async checkAuthentication() {
+    try {
+      const response = await chrome.runtime.sendMessage({ action: 'checkAuth' });
+      return response && response.success && response.isAuthenticated;
+    } catch (error) {
+      console.error('TubeMaster: Error checking authentication:', error);
+      return false;
+    }
+  }
+
+  // Method to remove all extension sections
+  removeAllSections() {
+    // Remove title suggestions section
+    if (this.titleSuggestionsSection && this.titleSuggestionsSection.parentElement) {
+      this.titleSuggestionsSection.remove();
+      this.titleSuggestionsSection = null;
+    }
+    
+    // Remove thumbnail builder section
+    if (this.thumbnailBuilderSection && this.thumbnailBuilderSection.parentElement) {
+      this.thumbnailBuilderSection.remove();
+      this.thumbnailBuilderSection = null;
+    }
+    
+    // Remove description generator section
+    if (this.descriptionGeneratorSection && this.descriptionGeneratorSection.parentElement) {
+      this.descriptionGeneratorSection.remove();
+      this.descriptionGeneratorSection = null;
+    }
+    
+    // Remove any suggestion containers
+    if (this.suggestionContainer && this.suggestionContainer.parentElement) {
+      this.suggestionContainer.remove();
+      this.suggestionContainer = null;
+    }
+    
+    // Remove extension indicator
+    const indicator = document.querySelector('.ttg-indicator');
+    if (indicator && indicator.parentElement) {
+      indicator.remove();
+    }
+    
+    console.log('TubeMaster: All sections removed due to sign out');
+  }
+
+  // Method to add all extension sections
+  addAllSections() {
+    // Re-setup integration
+    this.findTitleInput();
+    this.addThumbnailBuilderSection();
+    this.addDescriptionGeneratorSection();
+    this.addExtensionIndicator();
+    
+    console.log('TubeMaster: All sections added due to sign in');
+  }
+
+  showNotAuthenticatedMessage() {
+    // Features are blocked when not authenticated
+    return;
+  }
+
+  async setupIntegration() {
+    // Check authentication first
+    const isAuth = await this.checkAuthentication();
+    if (!isAuth) {
+      this.showNotAuthenticatedMessage();
+      return;
+    }
+    this.isAuthenticated = true;
     
     // Ensure CSS is loaded
     this.ensureCSSLoaded();
@@ -60,8 +129,8 @@ class YouTubeStudioIntegration {
   startPeriodicChecks() {
     
     this.periodicCheckInterval = setInterval(() => {
-      // Only run if we're on YouTube Studio
-      if (!window.location.href.includes('studio.youtube.com')) {
+      // Only run if we're on YouTube Studio and authenticated
+      if (!window.location.href.includes('studio.youtube.com') || !this.isAuthenticated) {
         return;
       }
       
@@ -376,7 +445,6 @@ class YouTubeStudioIntegration {
             }
             
             if (input !== this.currentTitleInput) {
-              console.log('TubeMate: Found title input via broad search');
               this.currentTitleInput = input;
               this.setupTitleInputIntegration(input);
             }
@@ -385,7 +453,7 @@ class YouTubeStudioIntegration {
         }
       }
     } catch (error) {
-      console.log('TubeMate: Error in findTitleInput:', error);
+      console.error('TubeMaster: Error in findTitleInput:', error);
     }
     
     this.currentTitleInput = null;
@@ -547,7 +615,7 @@ class YouTubeStudioIntegration {
     container.innerHTML = `
       <div class="ttg-header">
         <span class="ttg-icon">✏️</span>
-        <span class="ttg-title">TubeMate Title Generator</span>
+        <span class="ttg-title">TubeMaster Title Generator</span>
         <button class="ttg-close">×</button>
       </div>
       <div class="ttg-content">
@@ -596,7 +664,7 @@ class YouTubeStudioIntegration {
     container.innerHTML = `
       <div class="ttg-header">
         <span class="ttg-icon"></span>
-        <span class="ttg-title">TubeMate Auto Suggestions</span>
+        <span class="ttg-title">TubeMaster Auto Suggestions</span>
         <button class="ttg-close">×</button>
       </div>
       <div class="ttg-content">
@@ -677,7 +745,7 @@ class YouTubeStudioIntegration {
         throw new Error('Invalid response format');
       }
     } catch (error) {
-      console.log('TubeMate: API call failed, using fallback data:', error.message);
+      console.error('TubeMaster: API call failed, using fallback data:', error.message);
       
       // Static fallback data - no external dependencies
       return this.getStaticTitleSuggestions(input);
@@ -701,6 +769,10 @@ class YouTubeStudioIntegration {
   }
 
   addThumbnailBuilderSection() {
+    // Don't add thumbnail builder section if not authenticated
+    if (!this.isAuthenticated) {
+      return;
+    }
 
     // Check if we already have a thumbnail builder section
     if (this.thumbnailBuilderSection && document.body.contains(this.thumbnailBuilderSection)) {
@@ -720,7 +792,7 @@ class YouTubeStudioIntegration {
     for (const selector of testCompareSelectors) {
       testCompareSection = document.querySelector(selector);
       if (testCompareSection) {
-        console.log(`TubeMate: Found Test & compare section with selector: ${selector}`);
+        console.log(`TubeMaster: Found Test & compare section with selector: ${selector}`);
         break;
       }
     }
@@ -745,7 +817,6 @@ class YouTubeStudioIntegration {
               parentSection.offsetHeight > 50 &&
               parentSection.offsetWidth > 200) {
               testCompareSection = parentSection;
-              console.log('TubeMate: Found Test & compare section via text search');
               break;
             }
             parentSection = parentSection.parentElement;
@@ -774,7 +845,7 @@ class YouTubeStudioIntegration {
 
     const logoImg = document.createElement('img');
     logoImg.className = 'ttg-suggestions-logo-img ttg-suggestions-logo-img-styled';
-    logoImg.alt = 'TubeMate';
+    logoImg.alt = 'TubeMaster';
 
     // Try to set the logo URL safely
     try {
@@ -868,7 +939,7 @@ class YouTubeStudioIntegration {
       this.thumbnailBuilderSection = builderSection;
 
     } catch (error) {
-      console.log('TubeMate: Error inserting thumbnail builder section:', error);
+      console.error('TubeMaster: Error inserting thumbnail builder section:', error);
     }
   }
 
@@ -877,6 +948,11 @@ class YouTubeStudioIntegration {
 
 
   addDescriptionGeneratorSection() {
+    // Don't add description generator section if not authenticated
+    if (!this.isAuthenticated) {
+      return;
+    }
+    
     // Check if we already have a description generator section
     if (this.descriptionGeneratorSection && document.body.contains(this.descriptionGeneratorSection)) {
       return;
@@ -922,7 +998,7 @@ class YouTubeStudioIntegration {
 
     const logoImg = document.createElement('img');
     logoImg.className = 'ttg-suggestions-logo-img ttg-suggestions-logo-img-styled';
-    logoImg.alt = 'TubeMate';
+    logoImg.alt = 'TubeMaster';
 
     // Try to set the logo URL safely
     try {
@@ -950,7 +1026,7 @@ class YouTubeStudioIntegration {
     initialButton.innerHTML = `
       <div class="ttg-initial-btn-content">
         
-        <img class="ttg-suggestions-logo-img ttg-suggestions-logo-img-styled" alt="TubeMate" src="${chrome.runtime.getURL('icons/logo.png')}">
+        <img class="ttg-suggestions-logo-img ttg-suggestions-logo-img-styled" alt="TubeMaster" src="${chrome.runtime.getURL('icons/logo.png')}">
         <span class="ttg-initial-btn-text">Get AI description recommendations</span>
       </div>
     `;
@@ -1010,7 +1086,7 @@ class YouTubeStudioIntegration {
       this.descriptionGeneratorSection = generatorSection;
 
     } catch (error) {
-      console.log('TubeMate: Error inserting description generator section:', error);
+      console.error('TubeMaster: Error inserting description generator section:', error);
     }
   }
 
@@ -1240,7 +1316,7 @@ class YouTubeStudioIntegration {
         throw new Error('Invalid response from description API');
       }
     } catch (error) {
-      console.log('TubeMate: Description API call failed:', error.message);
+      console.error('TubeMaster: Description API call failed:', error.message);
       // Return static dummy response instead of showing error
       const fallbackDescription = `Description ${descriptionIndex} - Discover everything you need to know about ${keywords}! In this comprehensive guide, we'll explore the key concepts and provide practical tips to help you succeed.
 
@@ -1430,7 +1506,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
     }
     
     if (!descriptionContainer) {
-      console.log('TubeMate: Description container not found');
+      console.error('TubeMaster: Description container not found');
       this.showInsertError(insertButton, 'Container Not Found');
       return;
     }
@@ -1502,7 +1578,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
       this.showInsertSuccess(insertButton);
       
     } else {
-      console.log('TubeMate: Description input element not found');
+      console.error('TubeMaster: Description input element not found');
       this.showInsertError(insertButton, 'Input Not Found');
     }
   }
@@ -1621,7 +1697,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
           throw new Error('Invalid response from thumbnail API');
         }
       } catch (error) {
-        console.log('TubeMate: Thumbnail API call failed:', error.message);
+        console.error('TubeMaster: Thumbnail API call failed:', error.message);
       } finally {
       // Re-enable button
       generateButton.disabled = false;
@@ -1673,6 +1749,10 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
 
 
   addTitleSuggestionsSection(titleInput) {
+    // Don't add suggestions section if not authenticated
+    if (!this.isAuthenticated) {
+      return;
+    }
     
     // Check if we already have a valid section for this specific input
     if (this.titleSuggestionsSection && 
@@ -1699,7 +1779,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
     targetContainer = document.querySelector('.container-bottom.style-scope.ytcp-social-suggestions-textbox');
     
     if (targetContainer) {
-      console.log('TubeMate: Found title target container where to place suggestions box with main selector');
+      console.log('TubeMaster: Found title target container where to place suggestions box with main selector');
     } else {
       // Fallback: look for any container-bottom element that might work
       const fallbackSelectors = [
@@ -1711,14 +1791,14 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
       for (const selector of fallbackSelectors) {
         targetContainer = document.querySelector(selector);
         if (targetContainer) {
-          console.log(`TubeMate: Found target container with fallback selector: ${selector}`);
+          console.log(`TubeMaster: Found target container with fallback selector: ${selector}`);
           break;
         }
       }
     }
 
     if (!targetContainer) {
-      console.log('TubeMate: No suitable target container found for title suggestions');
+      console.error('TubeMaster: No suitable target container found for title suggestions');
       return;
     }
 
@@ -1746,7 +1826,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
     
     const logoImg = document.createElement('img');
     logoImg.className = 'ttg-suggestions-logo-img ttg-suggestions-logo-img-styled';
-    logoImg.alt = 'TubeMate';
+    logoImg.alt = 'TubeMaster';
     
     // Try to set the logo URL safely
     try {
@@ -2043,7 +2123,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
     indicator.className = 'ttg-indicator';
     indicator.innerHTML = `
       <div class="ttg-indicator-content">
-        <span class="ttg-text">TubeMate Tools Active</span>
+        <span class="ttg-text">TubeMaster Tools Active</span>
       </div>
     `;
 
@@ -2066,8 +2146,27 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
       const titleInput = this.findTitleInput();
       sendResponse({ found: !!titleInput });
     } else if (request.action === 'refreshCSS') {
-      console.log('TubeMate: Received CSS refresh request');
       this.ensureCSSLoaded();
+      sendResponse({ success: true });
+    } else if (request.action === 'authenticationComplete') {
+      // Re-check authentication and re-initialize if needed
+      this.checkAuthentication().then(isAuth => {
+        if (isAuth) {
+          this.isAuthenticated = true;
+          // Add all sections now that user is authenticated
+          this.addAllSections();
+        }
+      });
+      sendResponse({ success: true });
+    } else if (request.action === 'userSignedOut') {
+      // User signed out, remove all sections
+      this.isAuthenticated = false;
+      this.removeAllSections();
+      sendResponse({ success: true });
+    } else if (request.action === 'userSignedIn') {
+      // User signed in, add all sections
+      this.isAuthenticated = true;
+      this.addAllSections();
       sendResponse({ success: true });
     }
   }

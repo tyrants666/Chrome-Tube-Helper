@@ -3,6 +3,292 @@ class TubeTitleGeneratorBackground {
     this.init();
   }
 
+  // Authentication methods
+  async isUserAuthenticated() {
+    try {
+      // First check if we can access tubemaster.ai localStorage
+      const authData = await this.getAuthDataFromTubeMaster();
+      if (authData && authData.token) {
+        return true;
+      }
+      
+      // Fallback to local storage (for backward compatibility)
+      const result = await chrome.storage.local.get(['authToken', 'userInfo']);
+      return !!(result.authToken && result.userInfo);
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      return false;
+    }
+  }
+
+  // Get auth data from Chrome storage (synced from tubemaster.ai)
+  async getAuthDataFromTubeMaster() {
+    try {
+      // Try to get from Chrome storage first (most efficient)
+      const result = await chrome.storage.local.get(['tubemaster_auth_session']);
+      if (result.tubemaster_auth_session) {
+        return result.tubemaster_auth_session;
+      }
+
+      // If not in storage, try existing tabs as fallback (but don't create new ones)
+      const tabs = await chrome.tabs.query({url: "https://tubemaster.ai/*"});
+      
+      if (tabs.length > 0) {
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: tabs[0].id },
+          func: () => {
+            try {
+              const authSession = localStorage.getItem('auth_session');
+              return authSession ? JSON.parse(authSession) : null;
+            } catch (e) {
+              return null;
+            }
+          }
+        });
+        
+        if (results && results[0] && results[0].result) {
+          // Store in Chrome storage for future use
+          await chrome.storage.local.set({
+            tubemaster_auth_session: results[0].result,
+            tubemaster_auth_timestamp: Date.now()
+          });
+          
+          return results[0].result;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting auth data from TubeMaster:', error);
+      return null;
+    }
+  }
+
+  // Handle auth data sync from tubemaster.ai content script
+  async handleAuthDataSync(authData, timestamp) {
+    try {
+      if (authData && authData.token) {
+        // Store in Chrome storage
+        await chrome.storage.local.set({
+          tubemaster_auth_session: authData,
+          tubemaster_auth_timestamp: timestamp
+        });
+        
+        console.log('TubeMaster: Auth data synced from tubemaster.ai');
+        
+        // Notify YouTube Studio tabs that auth state might have changed
+        chrome.tabs.query({url: "https://studio.youtube.com/*"}, (tabs) => {
+          tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, { action: 'authenticationComplete' });
+          });
+        });
+      } else {
+        // Auth data is null/empty, user might have signed out
+        await chrome.storage.local.remove(['tubemaster_auth_session', 'tubemaster_auth_timestamp']);
+        
+        console.log('TubeMaster: Auth data cleared from tubemaster.ai');
+        
+        // Notify YouTube Studio tabs that user signed out
+        chrome.tabs.query({url: "https://studio.youtube.com/*"}, (tabs) => {
+          tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, { action: 'userSignedOut' });
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error handling auth data sync:', error);
+      throw error;
+    }
+  }
+
+
+
+  async clearAuthData() {
+    try {
+      // Clear auth data from tubemaster.ai localStorage
+      await this.clearAuthDataFromTubeMaster();
+      
+      // Clear Chrome storage
+      await chrome.storage.local.remove([
+        'tubemaster_auth_session',
+        'tubemaster_auth_timestamp'
+      ]);
+      
+      return true;
+    } catch (error) {
+      console.error('Error clearing auth data:', error);
+      return false;
+    }
+  }
+
+  // Clear auth data from tubemaster.ai localStorage (but don't trigger logout)
+  async clearAuthDataFromTubeMaster() {
+    try {
+      // Only clear from existing tabs, don't create new ones
+      const tabs = await chrome.tabs.query({url: "https://tubemaster.ai/*"});
+      
+      if (tabs.length > 0) {
+        await chrome.scripting.executeScript({
+          target: { tabId: tabs[0].id },
+          func: () => {
+            try {
+              // Only clear auth session, don't trigger website logout
+              localStorage.removeItem('auth_session');
+              console.log('TubeMaster: Cleared auth_session from localStorage');
+              return true;
+            } catch (e) {
+              console.error('Error clearing auth session:', e);
+              return false;
+            }
+          }
+        });
+        console.log('TubeMaster: Cleared auth data from existing tubemaster.ai tab');
+      } else {
+        console.log('TubeMaster: No tubemaster.ai tabs open, auth data will be cleared when user visits the site');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error clearing auth data from TubeMaster:', error);
+      return false;
+    }
+  }
+
+  async getAuthToken() {
+    try {
+      const authData = await this.getAuthDataFromTubeMaster();
+      return authData && authData.token ? authData.token : null;
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+      return null;
+    }
+  }
+
+  async openAuthWindow() {
+    try {
+      const width = 500;
+      const height = 700;
+
+      // Get display info using chrome.system.display
+      return new Promise((resolve) => {
+        chrome.system.display.getInfo(async (displays) => {
+          try {
+            const primaryDisplay = displays.find(d => d.isPrimary) || displays[0];
+            const screenWidth = primaryDisplay.workArea.width;
+            const screenHeight = primaryDisplay.workArea.height;
+
+            const left = Math.round((screenWidth - width) / 2);
+            const top = Math.round((screenHeight - height) / 2);
+
+            const authWindow = await chrome.windows.create({
+              url: 'https://tubemaster.ai/auth?extension=true',
+              type: 'popup',
+              width,
+              height,
+              left,
+              top,
+              focused: true
+            });
+
+            // Set up monitoring for authentication completion
+            this.monitorAuthWindow(authWindow.id);
+
+            resolve({ success: true, windowId: authWindow.id });
+          } catch (error) {
+            resolve({ success: false, error: error.message });
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error opening auth window:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Monitor auth window for authentication completion
+  async monitorAuthWindow(windowId) {
+    const checkInterval = setInterval(async () => {
+      try {
+        // Check if window still exists
+        const window = await chrome.windows.get(windowId);
+        if (!window) {
+          clearInterval(checkInterval);
+          return;
+        }
+
+        // Get the active tab in the auth window
+        const tabs = await chrome.tabs.query({ windowId: windowId });
+        if (tabs.length === 0) {
+          clearInterval(checkInterval);
+          return;
+        }
+
+        const tab = tabs[0];
+        
+        // Check if we're still on tubemaster.ai domain
+        if (tab.url && tab.url.includes('tubemaster.ai')) {
+          // Execute script to check for auth_session in localStorage
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+              try {
+                const authSession = localStorage.getItem('auth_session');
+                return authSession ? JSON.parse(authSession) : null;
+              } catch (e) {
+                return null;
+              }
+            }
+          });
+
+          if (results && results[0] && results[0].result && results[0].result.token) {
+            // Authentication successful! Close the popup
+            clearInterval(checkInterval);
+            chrome.windows.remove(windowId);
+            
+            // Sync the auth data immediately
+            await this.handleAuthDataSync(results[0].result, Date.now());
+            
+            // Check if YouTube Studio tab is already open before creating new one
+            chrome.tabs.query({url: "https://studio.youtube.com/*"}, (existingTabs) => {
+              if (existingTabs.length === 0) {
+                // No YouTube Studio tab open, create one
+                chrome.tabs.create({
+                  url: 'https://studio.youtube.com',
+                  active: true
+                });
+              } else {
+                // Focus existing YouTube Studio tab
+                chrome.tabs.update(existingTabs[0].id, { active: true });
+              }
+            });
+            
+            // Also open the main popup after a short delay
+            setTimeout(() => {
+              chrome.action.openPopup().catch(() => {
+                console.log('Could not open popup after authentication');
+              });
+            }, 1000);
+            
+            // Notify content scripts that authentication is complete
+            chrome.tabs.query({url: "https://studio.youtube.com/*"}, (tabs) => {
+              tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, { action: 'authenticationComplete' });
+              });
+            });
+          }
+        }
+      } catch (error) {
+        // Window might be closed, stop monitoring
+        clearInterval(checkInterval);
+      }
+    }, 1000); // Check every second
+
+    // Stop monitoring after 5 minutes to prevent memory leaks
+    setTimeout(() => {
+      clearInterval(checkInterval);
+    }, 5 * 60 * 1000);
+  }
+
   init() {
     // Handle extension installation
     chrome.runtime.onInstalled.addListener((details) => {
@@ -11,7 +297,7 @@ class TubeTitleGeneratorBackground {
 
     // Handle messages from content scripts and popup
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      this.handleMessage(request, sender, sendResponse);
+      return this.handleMessage(request, sender, sendResponse);
     });
 
     // Handle extension icon click
@@ -25,9 +311,9 @@ class TubeTitleGeneratorBackground {
     });
   }
 
-  handleInstallation(details) {
+  async handleInstallation(details) {
     if (details.reason === 'install') {
-      console.log('TubeMate Tools installed');
+      console.log('TubeMaster Tools installed');
       
       // Set default settings
       chrome.storage.local.set({
@@ -38,23 +324,103 @@ class TubeTitleGeneratorBackground {
         }
       });
 
-      // Redirect to YouTube Studio after installation
-      chrome.tabs.create({
-        url: 'https://studio.youtube.com'
-      });
+      // Always redirect to YouTube Studio and open popup after installation
+      setTimeout(() => {
+        this.redirectToYouTubeStudio();
+        // Open popup after a short delay
+        setTimeout(() => {
+          chrome.action.openPopup().catch(() => {
+            console.log('Could not open popup after installation');
+          });
+        }, 1500);
+      }, 1000);
       
-      console.log('TubeMate Tools installed successfully, redirecting to YouTube Studio');
+      console.log('TubeMaster Tools installed successfully, redirecting to YouTube Studio');
     }
+  }
+
+
+  // Helper method to redirect to YouTube Studio (prevents duplicate tabs)
+  redirectToYouTubeStudio() {
+    chrome.tabs.query({url: "https://studio.youtube.com/*"}, (existingTabs) => {
+      if (existingTabs.length === 0) {
+        // No YouTube Studio tab open, create one
+        chrome.tabs.create({
+          url: 'https://studio.youtube.com',
+          active: true
+        });
+      } else {
+        // Focus existing YouTube Studio tab
+        chrome.tabs.update(existingTabs[0].id, { active: true });
+        console.log('TubeMaster: Focused existing YouTube Studio tab');
+      }
+    });
   }
 
   handleMessage(request, sender, sendResponse) {
     switch (request.action) {
       case 'openPopup':
-        this.openPopup(sender.tab);
-        break;
+        this.openPopup(sender.tab)
+          .then(() => sendResponse({ success: true }))
+          .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+      case 'checkAuth':
+        this.isUserAuthenticated()
+          .then(isAuth => sendResponse({ success: true, isAuthenticated: isAuth }))
+          .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+      case 'getUserInfo':
+        this.getAuthDataFromTubeMaster()
+          .then(authData => {
+            if (authData) {
+              sendResponse({ success: true, userInfo: authData });
+            } else {
+              sendResponse({ success: false, error: 'No user info available' });
+            }
+          })
+          .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+      case 'syncAuthData':
+        // Handle auth data sync from tubemaster.ai content script
+        this.handleAuthDataSync(request.authData, request.timestamp)
+          .then(() => sendResponse({ success: true }))
+          .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+      case 'signOut':
+        this.clearAuthData()
+          .then(success => {
+            if (success) {
+              // Notify all YouTube Studio tabs that user signed out
+              chrome.tabs.query({url: "https://studio.youtube.com/*"}, (tabs) => {
+                tabs.forEach(tab => {
+                  chrome.tabs.sendMessage(tab.id, { action: 'userSignedOut' });
+                });
+              });
+            }
+            sendResponse({ success });
+          })
+          .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
+
+      case 'openAuthWindow':
+        this.openAuthWindow()
+          .then(result => sendResponse(result))
+          .catch(error => sendResponse({ success: false, error: error.message }));
+        return true;
         
       case 'generateTitles':
-        this.generateTitles(request.input, request.type)
+        // Check authentication first
+        this.isUserAuthenticated()
+          .then(isAuth => {
+            if (!isAuth) {
+              throw new Error('User not authenticated');
+            }
+            return this.generateTitles(request.input, request.type);
+          })
           .then(suggestions => sendResponse({ success: true, suggestions }))
           .catch(error => {
             // Pass through API error details if available
@@ -78,7 +444,14 @@ class TubeTitleGeneratorBackground {
         return true; // Keep message channel open for async response
 
       case 'generateThumbnails':
-        this.generateThumbnails(request.description, request.type)
+        // Check authentication first
+        this.isUserAuthenticated()
+          .then(isAuth => {
+            if (!isAuth) {
+              throw new Error('User not authenticated');
+            }
+            return this.generateThumbnails(request.description, request.type);
+          })
           .then(thumbnails => {
             sendResponse({ success: true, thumbnails });
           })
@@ -101,7 +474,14 @@ class TubeTitleGeneratorBackground {
         return true;
 
       case 'generateDescription':
-        this.generateDescription(request.idea, request.keywords, request.title)
+        // Check authentication first
+        this.isUserAuthenticated()
+          .then(isAuth => {
+            if (!isAuth) {
+              throw new Error('User not authenticated');
+            }
+            return this.generateDescription(request.idea, request.keywords, request.title);
+          })
           .then(description => {
             sendResponse({ success: true, description });
           })
@@ -130,14 +510,14 @@ class TubeTitleGeneratorBackground {
         return true;
         
       case 'refreshCSS':
-        console.log('TubeMate: Received CSS refresh request for tab:', sender.tab.id);
         this.injectCSSWithCacheBusting(sender.tab.id)
           .then(() => sendResponse({ success: true }))
           .catch(error => sendResponse({ success: false, error: error.message }));
         return true;
         
       default:
-        console.log('Unknown message action:', request.action);
+        sendResponse({ success: false, error: 'Unknown action' });
+        return false;
     }
   }
 
@@ -184,13 +564,12 @@ class TubeTitleGeneratorBackground {
         // Always inject CSS to ensure styles are loaded
         await this.injectCSSWithCacheBusting(tabId);
 
-        console.log('TubeMate: Content script and CSS injected successfully');
       } else {
         // Even if content script exists, ensure CSS is injected with fresh styles
         try {
           await this.injectCSSWithCacheBusting(tabId);
         } catch (cssError) {
-          console.log('TubeMate: CSS injection error:', cssError);
+          console.log('TubeMaster: CSS injection error:', cssError);
         }
       }
     } catch (error) {
@@ -213,7 +592,7 @@ class TubeTitleGeneratorBackground {
       });
       
     } catch (error) {
-      console.log('TubeMate: Direct CSS injection failed, trying fallback method:', error);
+      console.error('TubeMaster: Direct CSS injection failed, trying fallback method:', error);
       
       // Method 2: Fallback to file injection (may use cached version)
       try {
@@ -221,9 +600,8 @@ class TubeTitleGeneratorBackground {
           target: { tabId },
           files: ['content.css']
         });
-        console.log('TubeMate: CSS injected via file (may be cached)');
       } catch (fallbackError) {
-        console.error('TubeMate: Both CSS injection methods failed:', fallbackError);
+        console.error('TubeMaster: Both CSS injection methods failed:', fallbackError);
         
         // Method 3: Last resort - inject minimal styles directly
         const minimalCSS = `
@@ -249,7 +627,7 @@ class TubeTitleGeneratorBackground {
           target: { tabId },
           css: minimalCSS
         });
-        console.log('TubeMate: Minimal CSS injected as last resort');
+        console.log('TubeMaster: Minimal CSS injected as last resort');
       }
     }
   }
@@ -269,23 +647,18 @@ class TubeTitleGeneratorBackground {
   }
 
   async openPopup(tab) {
-    // Focus on the extension popup (this is handled automatically by Chrome)
-    // But we can trigger the popup programmatically if needed
     try {
       await chrome.action.openPopup();
     } catch (error) {
-      console.log('Could not open popup programmatically:', error);
+      console.error('Could not open popup programmatically:', error);
     }
   }
 
   async generateTitles(input, type = 'mainPopup') {
     try {
-      // Make actual API call that will appear in Network tab
       const response = await this.makeApiCall(input, type);
-      // Return all suggestions without filtering - same response for both auto-suggestions and main popup
       return response.suggestions;
     } catch (error) {
-      // Fallback to static data if API fails
       const suggestions = this.getStaticTitleSuggestions(input);
       return suggestions;
     }
@@ -318,16 +691,23 @@ class TubeTitleGeneratorBackground {
       title: input
     };
 
-    console.log('TubeMate: Making API request to', API_ENDPOINT);
 
     try {
+      // Get auth token and prepare headers
+      const authToken = await this.getAuthToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'User-Agent': 'TubeMaster-Extension/1.2'
+      };
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       // Make the actual API call that will be visible in Network tab
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'TubeMate-Extension/1.0'
-        },
+        headers: headers,
         body: JSON.stringify(requestPayload)
       });
 
@@ -351,7 +731,7 @@ class TubeTitleGeneratorBackground {
       return data;
       
     } catch (error) {
-      console.log('TubeMate: API call failed, using fallback data:', error.message);
+      console.info('TubeMaster: API call failed, using fallback data:', error.message);
       
       // Fallback to static data when API fails
       const mockResponse = {
@@ -373,15 +753,23 @@ class TubeTitleGeneratorBackground {
       description: description,
     };
 
-    console.log('TubeMate: Making thumbnail API request to', API_ENDPOINT);
+    console.log('TubeMaster: Making thumbnail API request to', API_ENDPOINT);
 
     try {
+      // Get auth token and prepare headers
+      const authToken = await this.getAuthToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'User-Agent': 'TubeMaster-Extension/1.2'
+      };
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'TubeMate-Extension/1.0'
-        },
+        headers: headers,
         body: JSON.stringify(requestPayload)
       });
 
@@ -406,7 +794,7 @@ class TubeTitleGeneratorBackground {
       };
       
     } catch (error) {
-      console.log('TubeMate: Thumbnail API call failed:', error.message);
+      console.error('TubeMaster: Thumbnail API call failed:', error.message);
     }
   }
 
@@ -419,15 +807,22 @@ class TubeTitleGeneratorBackground {
       title: title || ''
     };
 
-    console.log('TubeMate: Making description API request to', API_ENDPOINT);
 
     try {
+      // Get auth token and prepare headers
+      const authToken = await this.getAuthToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'User-Agent': 'TubeMaster-Extension/1.2'
+      };
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'TubeMate-Extension/1.0'
-        },
+        headers: headers,
         body: JSON.stringify(requestPayload)
       });
 
@@ -452,7 +847,7 @@ class TubeTitleGeneratorBackground {
       };
       
     } catch (error) {
-      console.log('TubeMate: Description API call failed:', error.message);
+      console.error('TubeMaster: Description API call failed:', error.message);
       throw error; // Re-throw to be caught by generateDescription
     }
   }

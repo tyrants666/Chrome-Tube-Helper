@@ -1,11 +1,11 @@
-# TubeMate Tools Chrome Extension
+# TubeMaster Tools Chrome Extension
 
-A Chrome extension that helps YouTubers generate engaging titles & thumbnails for their videos and automatically populates them in YouTube Studio.
+A Chrome extension that helps YouTubers generate engaging titles, descriptions, and thumbnails for their videos and automatically populates them in YouTube Studio.
 
 ## Installation for Development
 
 1. **Download/Clone the Extension**
-   - Download all files to a folder (e.g., `tubemate-tools`)
+   - Download all files to a folder (e.g., `TubeMaster-tools`)
 
 2. **Open Chrome Developer Mode**
    - Open Chrome browser
@@ -19,7 +19,7 @@ A Chrome extension that helps YouTubers generate engaging titles & thumbnails fo
 
 4. **Pin the Extension**
    - Click the puzzle piece icon in Chrome toolbar
-   - Find "TubeMate Title Generator" and click the pin icon
+   - Find "TubeMaster Title Generator" and click the pin icon
    - The extension icon will now be visible in your toolbar
 
 

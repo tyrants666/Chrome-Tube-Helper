@@ -15,7 +15,7 @@
   height: auto !important;
 }
 
-/* TubeMate Title Generator Content Script Styles */
+/* TubeMaster Title Generator Content Script Styles */
 
 .ttg-suggestion-container {
   background: white;
@@ -461,8 +461,8 @@ html[dark] .ttg-thumbnail-spinner,
   }
 }
 
-/* TubeMate Title Suggestions Section Styles - Permanent Inside Title Area */
-/* TubeMate Title Suggestions Section Styles - Permanent Inside Title Area */
+/* TubeMaster Title Suggestions Section Styles - Permanent Inside Title Area */
+/* TubeMaster Title Suggestions Section Styles - Permanent Inside Title Area */
 
 .ttg-title-suggestions-section {
   background: #f9f9f9 !important;
@@ -788,7 +788,7 @@ html[dark] .ttg-suggestions-error,
 /* Description Input Section */
 .ttg-description-container {
   /* padding: 16px !important; */
-  padding: 4px 4px 15px !important;
+  padding: 4px 4px 0 !important;
 }
 
 .ttg-description-label {
@@ -844,6 +844,7 @@ html[dark] .ttg-suggestions-error,
 
 /* Thumbnail Slider */
 .ttg-thumbnail-slider-container {
+  margin-top: 15px;
   padding: 16px 0 !important;
   background: white !important;
   border-top: 1px solid #e9ecef !important;

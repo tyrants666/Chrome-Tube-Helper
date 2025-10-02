@@ -3,23 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TubeMate Tools</title>
+  <title>TubeMaster Tools</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1> 
-        <img src="icons/logo.png" width="32" height="32" alt="TubeMate Tools" class="logo">
-        <span>TubeMate Tools</span>
+        <img src="icons/logo.png" width="32" height="32" alt="TubeMaster Tools" class="logo">
+        <span>TubeMaster</span>
       </h1>
     </div>
     
-    <div class="info-section">
-      <div class="description">
-        <p>TubeMate Tools helps you create engaging YouTube titles and custom thumbnails using AI-powered suggestions directly in YouTube Studio. Simply start typing in the title field to get instant title suggestions, or use the Thumbnail Builder to generate custom thumbnails from your video description!</p>
+    <!-- Not authenticated view -->
+    <div id="notAuthenticatedView" class="auth-section" style="display: none;">
+      <div class="auth-message">
+        <p>Please sign in to access TubeMaster Tools features including AI-powered title suggestions, thumbnail builder, description generator and more!</p>
       </div>
       
+      <div class="auth-actions">
+        <button id="signInBtn" class="auth-btn primary">
+          Sign In
+        </button>
+        <div class="auth-signup">
+          <span>Don't have an account? </span>
+          <button id="signUpBtn" class="auth-link">Sign up</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Authenticated view -->
+    <div id="authenticatedView" class="info-section" style="display: none;">
+      <!-- User info section -->
+      
+      <div class="description">
+        <p>AI-powered title suggestions, thumbnail builder, and description generator for YouTube Studio.</p>
+      </div>
+      
+      <div class="user-info">
+        <div class="user-email">
+          <span id="userEmail">Loading...</span>
+        </div>
+      </div>
+      <div class="auth-actions">
+        <button id="signOutBtn" class="auth-btn secondary">
+          Sign Out
+        </button>
+      </div>
       <div class="actions">
         <button id="studioBtn" class="studio-btn">
           <span>Go to YouTube Studio</span>
@@ -29,8 +59,16 @@
         </button>
       </div>
       
+      
       <div class="version-info">
-        <span>Version 1.0.1</span>
+        <span>Version 1.2</span>
+      </div>
+    </div>
+
+    <!-- Loading view -->
+    <div id="loadingView" class="loading-section">
+      <div class="loading-message">
+        <p>Loading...</p>
       </div>
     </div>
 
