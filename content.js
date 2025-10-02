@@ -1689,15 +1689,17 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
         description: description
       });
 
-        if (response && response.success && response.thumbnails) {
-          this.thumbnailsData = response.thumbnails;
-          this.displayThumbnails(thumbnailGrid);
-        } else {
-          throw new Error('Invalid response from thumbnail API');
-        }
-      } catch (error) {
-        console.error('TubeMaster: Thumbnail API call failed:', error.message);
-      } finally {
+      if (response && response.success && response.thumbnails && response.thumbnails.length > 0) {
+        this.thumbnailsData = response.thumbnails;
+        this.displayThumbnails(thumbnailGrid);
+      } else {
+        // Invalid response or empty thumbnails - keep loading spinners visible
+        console.log('TubeMaster: No valid thumbnails received, keeping loading state');
+      }
+    } catch (error) {
+      console.error('TubeMaster: Thumbnail API call failed:', error.message);
+      // Keep loading spinners visible even on error - don't replace them
+    } finally {
       // Re-enable button
       generateButton.disabled = false;
       generateButton.textContent = 'Generate Thumbnails';
@@ -1705,6 +1707,12 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
   }
 
   displayThumbnails(thumbnailGrid) {
+    // Only clear and display if we have valid thumbnail data
+    if (!this.thumbnailsData || this.thumbnailsData.length === 0) {
+      console.log('TubeMaster: No thumbnail data to display, keeping current state');
+      return;
+    }
+    
     // Clear grid
     thumbnailGrid.innerHTML = '';
     
@@ -1739,6 +1747,7 @@ Don't forget to LIKE this video if it helped you and SUBSCRIBE for more content!
       thumbnailGrid.appendChild(thumbnailItem);
     });
   }
+
 
   selectThumbnail(thumbnailUrl) {
     // Here you could implement logic to set the thumbnail in YouTube Studio

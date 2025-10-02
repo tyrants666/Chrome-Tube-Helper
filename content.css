@@ -1395,6 +1395,7 @@ button.ttg-description-prev-btn:hover:not(:disabled){
   margin-bottom: 16px !important;
 }
 
+
 .ttg-retry-description-btn {
   background: #dc3545 !important;
   color: white !important;
